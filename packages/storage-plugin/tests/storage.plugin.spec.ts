@@ -137,115 +137,119 @@ describe('NgxsStoragePlugin', () => {
     });
   });
 
-  it('should migrate global localstorage', () => {
-    const data = JSON.stringify({ counter: { count: 100, version: 1 } });
-    localStorage.setItem('@@STATE', data);
+  describe('when migrations defined', () => {
+    it('should migrate global localstorage', () => {
+      const data = JSON.stringify({ counter: { count: 100, version: 1 } });
+      localStorage.setItem('@@STATE', data);
 
-    TestBed.configureTestingModule({
-      imports: [
-        NgxsModule.forRoot([MyStore]),
-        NgxsStoragePluginModule.forRoot({
-          migrations: [
-            {
-              version: 1,
-              versionKey: 'counter.version',
-              migrate: state => {
-                state.counter = {
-                  counts: state.counter.count,
-                  version: 2
-                };
-                return state;
+      TestBed.configureTestingModule({
+        imports: [
+          NgxsModule.forRoot([MyStore]),
+          NgxsStoragePluginModule.forRoot({
+            migrations: [
+              {
+                version: 1,
+                versionKey: 'counter.version',
+                migrate: state => {
+                  state.counter = {
+                    counts: state.counter.count,
+                    version: 2
+                  };
+                  return state;
+                }
               }
-            }
-          ]
-        })
-      ]
+            ]
+          })
+        ]
+      });
+
+      const store = TestBed.get(Store);
+
+      store.select(state => state.counter).subscribe((state: StateModel) => {
+        expect(localStorage.getItem('@@STATE')).toBe(JSON.stringify({ counter: { counts: 100, version: 2 } }));
+      });
     });
 
-    const store = TestBed.get(Store);
+    it('should migrate single localstorage', () => {
+      const data = JSON.stringify({ count: 100, version: 1 });
+      localStorage.setItem('counter', data);
 
-    store.select(state => state.counter).subscribe((state: StateModel) => {
-      expect(localStorage.getItem('@@STATE')).toBe(JSON.stringify({ counter: { counts: 100, version: 2 } }));
-    });
-  });
-
-  it('should migrate single localstorage', () => {
-    const data = JSON.stringify({ count: 100, version: 1 });
-    localStorage.setItem('counter', data);
-
-    TestBed.configureTestingModule({
-      imports: [
-        NgxsModule.forRoot([MyStore]),
-        NgxsStoragePluginModule.forRoot({
-          key: 'counter',
-          migrations: [
-            {
-              version: 1,
-              key: 'counter',
-              versionKey: 'version',
-              migrate: state => {
-                state = {
-                  counts: state.count,
-                  version: 2
-                };
-                return state;
+      TestBed.configureTestingModule({
+        imports: [
+          NgxsModule.forRoot([MyStore]),
+          NgxsStoragePluginModule.forRoot({
+            key: 'counter',
+            migrations: [
+              {
+                version: 1,
+                key: 'counter',
+                versionKey: 'version',
+                migrate: state => {
+                  state = {
+                    counts: state.count,
+                    version: 2
+                  };
+                  return state;
+                }
               }
-            }
-          ]
-        })
-      ]
-    });
+            ]
+          })
+        ]
+      });
 
-    const store = TestBed.get(Store);
+      const store = TestBed.get(Store);
 
-    store.select(state => state.counter).subscribe((state: StateModel) => {
-      expect(localStorage.getItem('counter')).toBe(JSON.stringify({ counts: 100, version: 2 }));
-    });
-  });
-
-  it('should correct get data from session storage', () => {
-    sessionStorage.setItem('@@STATE', JSON.stringify({ counter: { count: 100 } }));
-
-    TestBed.configureTestingModule({
-      imports: [
-        NgxsModule.forRoot([MyStore]),
-        NgxsStoragePluginModule.forRoot({
-          storage: StorageOption.SessionStorage
-        })
-      ]
-    });
-
-    const store = TestBed.get(Store);
-
-    store.select(state => state.counter).subscribe((state: StateModel) => {
-      expect(state.count).toBe(100);
+      store.select(state => state.counter).subscribe((state: StateModel) => {
+        expect(localStorage.getItem('counter')).toBe(JSON.stringify({ counts: 100, version: 2 }));
+      });
     });
   });
 
-  it('should save data to sessionStorage', () => {
-    sessionStorage.setItem('@@STATE', JSON.stringify({ counter: { count: 100 } }));
+  describe('when session storage used', () => {
+    it('should correct get data from session storage', () => {
+      sessionStorage.setItem('@@STATE', JSON.stringify({ counter: { count: 100 } }));
 
-    TestBed.configureTestingModule({
-      imports: [
-        NgxsModule.forRoot([MyStore]),
-        NgxsStoragePluginModule.forRoot({
-          storage: StorageOption.SessionStorage
-        })
-      ]
+      TestBed.configureTestingModule({
+        imports: [
+          NgxsModule.forRoot([MyStore]),
+          NgxsStoragePluginModule.forRoot({
+            storage: StorageOption.SessionStorage
+          })
+        ]
+      });
+
+      const store = TestBed.get(Store);
+
+      store.select(state => state.counter).subscribe((state: StateModel) => {
+        expect(state.count).toBe(100);
+      });
     });
 
-    const store = TestBed.get(Store);
+    it('should save data to sessionStorage', () => {
+      sessionStorage.setItem('@@STATE', JSON.stringify({ counter: { count: 100 } }));
 
-    store.dispatch(new Increment());
-    store.dispatch(new Increment());
-    store.dispatch(new Increment());
-    store.dispatch(new Increment());
-    store.dispatch(new Increment());
+      TestBed.configureTestingModule({
+        imports: [
+          NgxsModule.forRoot([MyStore]),
+          NgxsStoragePluginModule.forRoot({
+            storage: StorageOption.SessionStorage
+          })
+        ]
+      });
 
-    store.select(state => state.counter).subscribe((state: StateModel) => {
-      expect(state.count).toBe(105);
+      const store = TestBed.get(Store);
 
-      expect(sessionStorage.getItem('@@STATE')).toBe(JSON.stringify({ counter: { count: 105 } }));
+      store.dispatch(new Increment());
+      store.dispatch(new Increment());
+      store.dispatch(new Increment());
+      store.dispatch(new Increment());
+      store.dispatch(new Increment());
+
+      store.select(state => state.counter).subscribe((state: StateModel) => {
+        expect(state.count).toBe(105);
+
+        expect(sessionStorage.getItem('@@STATE')).toBe(JSON.stringify({ counter: { count: 105 } }));
+      });
     });
   });
 
