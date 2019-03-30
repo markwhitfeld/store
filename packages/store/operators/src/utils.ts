@@ -2,6 +2,24 @@ import { StateOperator } from '@ngxs/store';
 
 import { Predicate } from './internals';
 
+export type StateOperatorUnion<T> =
+  | StateOperatorNonNullable<T>
+  | (T extends undefined ? StateOperator<T> : never)
+  | (T extends null ? StateOperator<T> : never);
+
+export type StateOperatorNonNullable<T> =
+  | (T extends boolean ? (StateOperator<true> | StateOperator<false>) : never)
+  | (T extends true ? (StateOperator<true> | StateOperator<boolean>) : never)
+  | (T extends false ? (StateOperator<false> | StateOperator<boolean>) : never)
+  | StateOperator<NonNullable<T>>;
+/*export type StateOperatorNonNullable<T> = StateOperator<NonNullable<T>>;*/
+/*
+export type StateOperatorUnion<T> =
+  | StateOperator<NonNullable<T>>
+  | (T extends undefined ? StateOperator<undefined> : never)
+  | (T extends null ? StateOperator<null> : never);
+  */
+
 export function isStateOperator<T>(value: T | StateOperator<T>): value is StateOperator<T> {
   return typeof value === 'function';
 }

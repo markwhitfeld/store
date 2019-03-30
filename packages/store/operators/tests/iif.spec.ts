@@ -94,6 +94,151 @@ describe('iif', () => {
     });
   });
 
+  describe('when undefined value provided', () => {
+    it('returns undefined', () => {
+      // Arrange
+
+      // Act
+      const newValue = iif<number | undefined>(() => true, undefined)(100);
+
+      // Assert
+      expect(newValue).toBeUndefined();
+    });
+
+    it('returns the same root if current value to patch is undefined', () => {
+      // Arrange
+      type Simple = {
+        a?: number;
+        b: number;
+        c: number;
+      };
+      const original: Simple = { a: undefined, b: 2, c: 3 };
+
+      // Act
+      const newValue = patch<Simple>({
+        a: iif(() => true, undefined)
+      })(original);
+
+      // Assert
+      expect(newValue).toBe(original);
+    });
+
+    it('returns a new root if current value to patch is not undefined', () => {
+      // Arrange
+      type Simple = {
+        a?: number;
+        b: number;
+        c: number;
+      };
+      const original: Simple = { a: 1, b: 2, c: 3 };
+
+      // Act
+      const newValue = patch<Simple>({
+        a: iif(() => true, undefined)
+      })(original);
+
+      // Assert
+      expect(newValue).toEqual({ a: undefined, b: 2, c: 3 });
+    });
+  });
+
+  describe('when null value provided', () => {
+    describe(`in the 'then'`, () => {
+      it('returns null', () => {
+        // Arrange
+
+        // Act
+        const newValue = iif<number | null>(() => true, null)(100);
+
+        // Assert
+        expect(newValue).toBeNull();
+      });
+
+      it('returns the same root if current value to patch is null', () => {
+        // Arrange
+        type Simple = {
+          a: number | null;
+          b: number;
+          c: number;
+        };
+        const original: Simple = { a: null, b: 2, c: 3 };
+
+        // Act
+        const newValue = patch<Simple>({
+          a: iif(() => true, null)
+        })(original);
+
+        // Assert
+        expect(newValue).toBe(original);
+      });
+
+      it('returns a new root if current value to patch is not null', () => {
+        // Arrange
+        type Simple = {
+          a: number | null;
+          b: number;
+          c: number;
+        };
+        const original: Simple = { a: 1, b: 2, c: 3 };
+
+        // Act
+        const newValue = patch<Simple>({
+          a: iif(() => true, null)
+        })(original);
+
+        // Assert
+        expect(newValue).toEqual({ a: null, b: 2, c: 3 });
+      });
+    });
+    describe(`in the 'else'`, () => {
+      it('returns null', () => {
+        // Arrange
+
+        // Act
+        const newValue = iif<number | null>(() => false, 1, null)(100);
+
+        // Assert
+        expect(newValue).toBeNull();
+      });
+
+      it('returns the same root if current value to patch is null', () => {
+        // Arrange
+        type Simple = {
+          a: number | null;
+          b: number;
+          c: number;
+        };
+        const original: Simple = { a: null, b: 2, c: 3 };
+
+        // Act
+        const newValue = patch<Simple>({
+          a: <any>iif(() => false, 123, null) // known typings issue
+        })(original);
+
+        // Assert
+        expect(newValue).toBe(original);
+      });
+
+      it('returns a new root if current value to patch is not null', () => {
+        // Arrange
+        type Simple = {
+          a: number | null;
+          b: number;
+          c: number;
+        };
+        const original: Simple = { a: 1, b: 2, c: 3 };
+
+        // Act
+        const newValue = patch<Simple>({
+          a: <any>iif(() => false, 123, null) // known typings issue
+        })(original);
+
+        // Assert
+        expect(newValue).toEqual({ a: null, b: 2, c: 3 });
+      });
+    });
+  });
+
   describe('when primitive values provided', () => {
     it('returns number if condition equals true', () => {
       // Act
@@ -130,7 +275,7 @@ describe('iif', () => {
   });
 
   describe('when argument provided into predicate function', () => {
-    it('returns the same root', () => {
+    it('returns the same root if no changes', () => {
       // Arrange
       const original = { a: 1, b: 2, c: 3 };
 
@@ -144,7 +289,7 @@ describe('iif', () => {
       expect(newValue).toBe(original);
     });
 
-    it('returns new patched object', () => {
+    it('returns new patched object when changed values', () => {
       // Arrange
       const original = { a: 1, b: 2, c: 3 };
 
@@ -165,70 +310,91 @@ describe('iif', () => {
     });
   });
 
-  describe('when object with primitive property values provided', () => {
-    it('returns the same root', () => {
-      // Arrange
-      const original = { a: 1, b: 2, c: 3 };
+  describe('when patch provided', () => {
+    describe('and the condition is true', () => {
+      it('returns the same root if the patched property is the same', () => {
+        // Arrange
+        const original = { a: 1, b: 2, c: 3 };
 
-      // Act
-      const newValue = iif(() => true, patch({ a: 1 }))(original);
+        // Act
+        const newValue = iif(() => true, patch({ a: 1 }))(original);
 
-      // Assert
-      expect(newValue).toEqual(original);
+        // Assert
+        expect(newValue).toBe(original);
+      });
+
+      it('returns the same root if a large patch results in no changes', () => {
+        // Arrange
+        const original = { a: 1, b: 2, c: 3 };
+
+        // Act
+        const newValue = iif(() => true, patch({ a: 1, b: 2 }))(original);
+
+        // Assert
+        expect(newValue).toBe(original);
+      });
+
+      it('returns new patched object if changed', () => {
+        // Arrange
+        interface Original {
+          a: number;
+          b: number;
+          c: number;
+        }
+        const original: Original = { a: 1, b: 2, c: 3 };
+
+        // Act
+        const newValue = iif<Original>(
+          () => true,
+          patch({ a: 3, b: 4 }),
+          patch({ a: 5, b: 6 })
+        )(original);
+
+        // Assert
+        expect(newValue).toEqual({
+          a: 3,
+          b: 4,
+          c: 3
+        });
+      });
     });
 
-    it('returns the same root when condition is false', () => {
-      // Arrange
-      interface Original {
-        a: number;
-        b: number;
-        c: number;
-      }
-      const original = { a: 1, b: 2, c: 3 };
+    describe('and the condition is false', () => {
+      it('returns the same root if the patched property is the same', () => {
+        // Arrange
+        interface Original {
+          a: number;
+          b: number;
+          c: number;
+        }
+        const original = { a: 1, b: 2, c: 3 };
 
-      // Act
-      const newValue = iif<Original>(() => false, patch({ b: 20 }), patch({ a: 1 }))(original);
+        // Act
+        const newValue = iif<Original>(() => false, patch({ b: 20 }), patch({ a: 1 }))(
+          original
+        );
 
-      // Assert
-      expect(newValue).toBe(original);
-    });
+        // Assert
+        expect(newValue).toBe(original);
+      });
 
-    it('returns the same root (when multiple same)', () => {
-      // Arrange
-      const original = { a: 1, b: 2, c: 3 };
+      it('returns the same root if a large patch results in no changes', () => {
+        // Arrange
+        const original = { a: 1, b: 2, c: 3 };
 
-      // Act
-      const newValue = iif(() => true, patch({ a: 1, b: 2 }))(original);
+        // Act
+        const newValue = iif(() => false, patch({ a: 3, b: 4 }), patch({ a: 1, b: 2 }))(
+          original
+        );
 
-      // Assert
-      expect(newValue).toEqual(original);
-    });
-
-    it('returns new patched object if "predicate" result equals true', () => {
-      // Arrange
-      interface Original {
-        a: number;
-        b: number;
-        c: number;
-      }
-      const original: Original = { a: 1, b: 2, c: 3 };
-
-      // Act
-      const newValue = patch<Original>({
-        a: iif(() => true, 10)
-      })(original);
-
-      // Assert
-      expect(newValue).toEqual({
-        a: 10,
-        b: 2,
-        c: 3
+        // Assert
+        expect(newValue).toBe(original);
       });
     });
   });
 
-  describe('when object with nested patch operators provided', () => {
-    describe('with different calculated values if condition equals "true"', () => {
+  describe('when used within a nested patch operators', () => {
+    describe('with different calculated value', () => {
       it('returns new root', () => {
         // Arrange
         const original = { a: 10, b: 10 };
@@ -242,7 +408,7 @@ describe('iif', () => {
         expect(newValue).not.toBe(original);
       });
 
-      it('returns new root with calculated properties if multiple "iif"s provided', () => {
+      it('returns new root with calculated properties when multiple "iif"s provided', () => {
         // Arrange
         const original = { a: 20, b: 20 };
 
@@ -259,7 +425,7 @@ describe('iif', () => {
         });
       });
 
-      it('treats the nested object as a patch if condition equals "true"', () => {
+      it('applies a nested patch', () => {
         // Arrange
         type Combined = {
           a: number;
@@ -276,6 +442,51 @@ describe('iif', () => {
           a: 1,
           b: { hello: 'world', goodbye: 'there' }
         });
+      });
+    });
+
+    describe('with same calculated value', () => {
+      it('returns same root', () => {
+        // Arrange
+        const original = { a: 10, b: 10 };
+
+        // Act
+        const newValue = patch({
+          b: iif(() => true, 10)
+        })(original);
+
+        // Assert
+        expect(newValue).toBe(original);
+      });
+
+      it('returns same root when multiple "iif"s provided', () => {
+        // Arrange
+        const original = { a: 20, b: 30 };
+
+        // Act
+        const newValue = patch({
+          a: iif(() => false, 10, 20),
+          b: iif(() => true, 30, 100)
+        })(original);
+
+        // Assert
+        expect(newValue).toBe(original);
+      });
+
+      it('returns same value for nested patch ', () => {
+        // Arrange
+        type Combined = {
+          a: number;
+          b: { hello?: string; goodbye?: string };
+        };
+        const original: Combined = { a: 1, b: { hello: 'world' } };
+        // Act
+        const newValue = patch({
+          b: iif<Combined['b']>(b => b!.hello === 'world', patch({ hello: 'world' }))
+        })(original);
+
+        // Assert
+        expect(newValue).toBe(original);
       });
     });
 
@@ -343,7 +554,7 @@ describe('iif', () => {
               motivated: iif(motivated => motivated !== true, true),
               person: patch({
                 name: iif(name => name !== 'Mark', 'Artur'),
-                lastName: iif(lastName => lastName !== 'Whitfield', 'Androsovych')
+                lastName: iif(lastName => lastName !== 'Whitfeld', 'Androsovych')
               })
             }),
             greeting: iif(greeting => !greeting, 'How are you?')

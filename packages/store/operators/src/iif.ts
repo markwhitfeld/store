@@ -1,20 +1,13 @@
 import { StateOperator } from '@ngxs/store';
 
-import { isStateOperator, isUndefined, isPredicate } from './utils';
+import { isStateOperator, isUndefined, isPredicate, StateOperatorUnion } from './utils';
 import { Predicate } from './internals';
 
 function retrieveValue<T>(operatorOrValue: StateOperator<T> | T, existing?: Readonly<T>): T {
   // If state operator is a function
   // then call it with an original value
-  if (isStateOperator(operatorOrValue)) {
+  if (isStateOperator<T>(operatorOrValue)) {
     return operatorOrValue(existing!);
-  }
-
-  // If operator or value was not provided
-  // e.g. `elseOperatorOrValue` is `undefined`
-  // then we just return an original value
-  if (isUndefined(operatorOrValue)) {
-    return existing!;
   }
 
   return operatorOrValue;
@@ -44,6 +37,12 @@ export function iif<T>(
       return retrieveValue(trueOperatorOrValue, existing);
     }
 
+    // If operator or value was not provided for the else
+    // e.g. `elseOperatorOrValue` is `undefined`
+    // then we just return an original value
+    if (isUndefined(elseOperatorOrValue)) {
+      return existing!;
+    }
     return retrieveValue(elseOperatorOrValue!, existing);
   };
 }

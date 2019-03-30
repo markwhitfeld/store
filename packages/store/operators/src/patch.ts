@@ -1,7 +1,7 @@
 import { StateOperator } from '@ngxs/store';
-import { isStateOperator } from './utils';
+import { isStateOperator, StateOperatorUnion } from './utils';
 
-export type PatchSpec<T> = { [P in keyof T]?: T[P] | StateOperator<NonNullable<T[P]>> };
+export type PatchSpec<T> = { [P in keyof T]?: T[P] | StateOperatorUnion<T[P]> };
 
 type PatchValues<T> = {
   readonly [P in keyof T]?: T[P] extends (...args: any[]) => infer R ? R : T[P]
