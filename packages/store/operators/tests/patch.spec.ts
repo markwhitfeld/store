@@ -304,6 +304,7 @@ describe('patch', () => {
           // Act
           const newValue = patch<Model>({
             b: patch({
+              // TS3.4 TYPEERROR
               hello: patch({
                 enthusiastic: true,
                 person: patch({

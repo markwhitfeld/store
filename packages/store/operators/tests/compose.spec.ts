@@ -39,7 +39,7 @@ describe('compose', () => {
       const newValue = patch({
         a: compose(
           iif(
-            a => a!.hello === 'world',
+            a => a!.hello === 'world', // TS3.4 TYPEERROR
             patch({
               hello: 'world'
             })
@@ -62,8 +62,8 @@ describe('compose', () => {
       // Act
       const newValue = compose(
         patch({ a: 10 }),
-        iif(object => object!.b === 2, patch({ b: 20 })),
-        iif(object => object!.c === 3, patch({ c: 30 }))
+        iif(object => object!.b === 2, patch({ b: 20 })), // TS3.4 TYPEERROR
+        iif(object => object!.c === 3, patch({ c: 30 })) // TS3.4 TYPEERROR
       )(original);
 
       // Assert
@@ -312,7 +312,7 @@ describe('compose', () => {
 
       // Act
       const newValue = patch<Stock>({
-        beer: compose<Beer[]>(
+        beer: compose<Beer[]>( // TS3.4 TYPEERROR
           removeItem(beer => beer!.name === 'BUNK!'),
           insertItem({ name: 'Corona', quantity: 10 }),
           append([{ name: 'Corona', quantity: 10 }])
@@ -332,8 +332,8 @@ describe('compose', () => {
       const newValue2 = patch({
         nestedStock: patch({
           wine: compose(
-            iif(wines => wines!.length === 0, append([{ name: 'Geneve', quantity: 10 }])),
-            insertItem({ name: 'Geneve 2', quantity: 20 })
+            iif(wines => wines!.length === 0, append([{ name: 'Geneve', quantity: 10 }])), // TS3.4 TYPEERROR
+            insertItem({ name: 'Geneve 2', quantity: 20 }) // TS3.4 TYPEERROR
           ),
           nestedStock: patch({
             whiskey: compose(

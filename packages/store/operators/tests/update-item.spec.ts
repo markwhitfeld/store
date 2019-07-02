@@ -56,7 +56,7 @@ describe('update item', () => {
 
       // Act
       const newValue = patch({
-        a: updateItem(item => item!.name === 'Mark', patch({ name: 'Mark' }))
+        a: updateItem(item => item!.name === 'Mark', patch({ name: 'Mark' })) // TS3.4 TYPEERROR
       })(original);
 
       // Assert
