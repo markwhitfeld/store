@@ -1,7 +1,7 @@
 /* tslint:disable:max-line-length */
 
 /// <reference types="@types/jest" />
-import { compose } from '../../operators/src';
+import { compose, removeItem, insertItem, iif } from '../../operators/src';
 
 describe('[TEST]: the compose State Operator', () => {
   it('should return the correct null or undefined type', () => {
@@ -106,6 +106,12 @@ describe('[TEST]: the compose State Operator', () => {
     compose<number[] | boolean>((x) => [10], (x) => false); // $ExpectType(existing: boolean | number[]) => boolean | number[]
     compose<number[] | number[][]>((x) => [10], (x) => [123]); // $ExpectType (existing: number[] | number[][]) => number[] | number[][]
     compose<number[] | { val: number[] }>((x) => [10], (x) => ({ val: [123] })); // $ExpectType (existing: number[] | Readonly<{ val: number[]; }>) => number[] | Readonly<{ val: number[]; }>
+
+    compose(removeItem(0), removeItem(0), insertItem(10))([1, 2, 3, 4]); // $ExpectError
+
+    iif<number[]>(
+      numbers => numbers!.length === 5,
+      compose(removeItem(0), removeItem(0), insertItem(10)))([1, 2, 3, 4]);  // $ExpectError
   });
 
   it('should return the correct object type', () => {

@@ -1,7 +1,7 @@
 /* tslint:disable:max-line-length */
 
 /// <reference types="@types/jest" />
-import { iif, patch } from '../../operators/src';
+import { iif, patch, compose } from '../../operators/src';
 
 describe('[TEST]: the iif State Operator', () => {
   it('should return the correct implied null or undefined type', () => {
@@ -346,6 +346,21 @@ describe('[TEST]: the iif State Operator', () => {
       patch<MyType>({ obj: { val: '3' }, _obj: { val: '4' } }),
       patch<MyType>({ obj: { val: '5' }, __obj: { val: '6' } })
     )(original); // $ExpectType MyType
+
+    // How does it handle unknown in TS 3.4?
+    iif(
+      a => a!.hello === 'world',  // TS3.4 TYPEERROR
+      patch({
+        hello: 'world'
+      })
+    )({ hello: 'there' }); // $ExpectType { hello: string; }
+
+    // How does it handle nested unknown usage in TS 3.4?
+    compose(
+      patch({ a: 10 }),
+      iif(object => object!.b === 2, patch({ b: 20 })), // TS3.4 TYPEERROR
+      iif(object => object!.c === 3, patch({ c: 30 })) // TS3.4 TYPEERROR
+    )({ a: 1, b: 2, c: 3 }); // $ExpectType { a: number; b: number; c: number; }
 
     patch<MyType>({
       obj: iif(() => false, { val: '10' }, { val: '30' }),
