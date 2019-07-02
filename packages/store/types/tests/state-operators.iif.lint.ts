@@ -126,33 +126,31 @@ describe('[TEST]: the iif State Operator', () => {
   });
 
   it('should return the corrrect implied array type', () => {
-    /* TODO: readonly array improvement with TS3.4
-    iif(null!, ['10']); // $/ExpectType (existing: string[]) => string[]
-    iif(null!, ['10'], ['20']); // $/ExpectType (existing: string[]) => string[]
-    iif(undefined!, ['10']); // $/ExpectType (existing: string[]) => string[]
-    iif(undefined!, ['10'], ['20']); // $/ExpectType (existing: string[]) => string[]
+    iif(null!, ['10']); // $ExpectType (existing: string[]) => string[]
+    iif(null!, ['10'], ['20']); // $ExpectType (existing: string[]) => string[]
+    iif(undefined!, ['10']); // $ExpectType (existing: string[]) => string[]
+    iif(undefined!, ['10'], ['20']); // $ExpectType (existing: string[]) => string[]
 
-    iif(true, ['10']); // $/ExpectType (existing: string[]) => string[]
-    iif(false, ['10'], ['20']); // $/ExpectType (existing: string[]) => string[]
-    iif(false, ['10'], null); // $/ExpectType (existing: string[] | null) => string[] | null
-    iif(false, null, ['10']); // $/ExpectType (existing: string[] | null) => string[] | null
-    iif(false, ['10'], undefined); // $/ExpectType (existing: string[] | undefined) => string[] | undefined
-    iif(false, undefined, ['10']); // $/ExpectType (existing: string[] | undefined) => string[] | undefined
+    iif(true, ['10']); // $ExpectType (existing: string[]) => string[]
+    iif(false, ['10'], ['20']); // $ExpectType (existing: string[]) => string[]
+    iif(false, ['10'], null); // $ExpectType (existing: string[] | null) => string[] | null
+    iif(false, null, ['10']); // $ExpectType (existing: string[] | null) => string[] | null
+    iif(false, ['10'], undefined); // $ExpectType (existing: string[] | undefined) => string[] | undefined
+    iif(false, undefined, ['10']); // $ExpectType (existing: string[] | undefined) => string[] | undefined
 
-    iif(() => true, ['10']); // $/ExpectType (existing: string[]) => string[]
-    iif(() => false, ['10'], ['20']); // $/ExpectType (existing: string[]) => string[]
-    iif(() => false, ['10'], null); // $/ExpectType (existing: string[] | null) => string[] | null
-    iif(() => false, ['10'], undefined); // $/ExpectType (existing: string[] | undefined) => string[] | undefined
+    iif(() => true, ['10']); // $ExpectType (existing: string[]) => string[]
+    iif(() => false, ['10'], ['20']); // $ExpectType (existing: string[]) => string[]
+    iif(() => false, ['10'], null); // $ExpectType (existing: string[] | null) => string[] | null
+    iif(() => false, ['10'], undefined); // $ExpectType (existing: string[] | undefined) => string[] | undefined
 
-    iif(arr => arr!.includes('1'), ['10']); // $/ExpectType (existing: string[]) => string[]
-    iif(arr => arr!.includes('1'), ['10'], ['20']); // $/ExpectType (existing: string[]) => string[]
-    iif(arr => arr!.includes('1'), ['10'], null); // $/ExpectType (existing: string[] | null) => string[] | null
-    iif(arr => arr!.includes('1'), null, ['10']); // $/ExpectType (existing: string[] | null) => string[] | null
-    iif(arr => arr === null, ['10'], null); // $/ExpectType (existing: string[] | null) => string[] | null
-    iif(arr => arr!.includes('1'), ['10'], undefined); // $/ExpectType (existing: string[] | undefined) => string[] | undefined
-    iif(arr => arr!.includes('1'), undefined, ['10']); // $/ExpectType (existing: string[] | undefined) => string[] | undefined
-    iif(arr => arr === undefined, ['10'], undefined); // $/ExpectType (existing: string[] | undefined) => string[] | undefined
-    */
+    iif(arr => arr!.includes('1'), ['10']); // $ExpectType (existing: string[]) => string[]
+    iif(arr => arr!.includes('1'), ['10'], ['20']); // $ExpectType (existing: string[]) => string[]
+    iif(arr => arr!.includes('1'), ['10'], null); // $ExpectType (existing: string[] | null) => string[] | null
+    iif(arr => arr!.includes('1'), null, ['10']); // $ExpectType (existing: string[] | null) => string[] | null
+    iif(arr => arr === null, ['10'], null); // $ExpectType (existing: string[] | null) => string[] | null
+    iif(arr => arr!.includes('1'), ['10'], undefined); // $ExpectType (existing: string[] | undefined) => string[] | undefined
+    iif(arr => arr!.includes('1'), undefined, ['10']); // $ExpectType (existing: string[] | undefined) => string[] | undefined
+    iif(arr => arr === undefined, ['10'], undefined); // $ExpectType (existing: string[] | undefined) => string[] | undefined
   });
 
   it('should have the following valid number usages', () => {
@@ -394,7 +392,6 @@ describe('[TEST]: the iif State Operator', () => {
       }
     };
 
-    /* !>TS3.4!
     patch<Model>({
       b: iif<Model['b']>(
         b => typeof b!.hello === 'object',
@@ -410,7 +407,7 @@ describe('[TEST]: the iif State Operator', () => {
         })
       ),
       c: iif(c => c !== 100, () => 0 + 100, 10)
-    })(original); // $/ExpectType Model
+    })(original); // $ExpectType Model
 
     patch<Model>({
       b: patch<Model['b']>({
@@ -424,8 +421,7 @@ describe('[TEST]: the iif State Operator', () => {
         greeting: iif(greeting => !greeting, 'How are you?')
       }),
       c: iif(c => !c, 100, 10)
-    })(original); // $/ExpectType Model
-    */
+    })(original); // $ExpectType Model
   });
 
   it('should not accept the following usages', () => {
