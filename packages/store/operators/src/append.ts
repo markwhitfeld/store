@@ -1,4 +1,4 @@
-import { RepairType } from './utils';
+import { RepairType } from './internals';
 
 /**
  * @param items - Specific items to append to the end of an array

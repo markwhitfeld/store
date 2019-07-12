@@ -107,7 +107,7 @@ describe('[TEST]: the compose State Operator', () => {
     compose<number[] | number[][]>((x) => [10], (x) => [123]); // $ExpectType (existing: number[] | number[][]) => number[] | number[][]
     compose<number[] | { val: number[] }>((x) => [10], (x) => ({ val: [123] })); // $ExpectType (existing: number[] | Readonly<{ val: number[]; }>) => number[] | Readonly<{ val: number[]; }>
 
-    compose(removeItem(0), removeItem(0), insertItem(10))([1, 2, 3, 4]); // $ExpectError
+    compose<number[]>(removeItem(0), removeItem(0), insertItem(10))([1, 2, 3, 4]); // $ExpectType number[]
 
     iif<number[]>(
       numbers => numbers!.length === 5,

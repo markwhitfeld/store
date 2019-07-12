@@ -31,6 +31,11 @@ function retrieveValue<T>(
  * @param trueOperatorOrValue - Any value or a state operator
  * @param elseOperatorOrValue - Any value or a state operator
  */
+export function iif<T, U = T>(
+  condition: Predicate<U> | boolean,
+  trueOperatorOrValue: StateOperator<T> | T,
+  elseOperatorOrValue?: StateOperator<T> | T
+): (existing: RepairType<Readonly<T>>) => RepairType<T>;
 export function iif<T>(
   condition: Predicate<T> | boolean,
   trueOperatorOrValue: StateOperator<T> | T,
