@@ -1,7 +1,7 @@
 import { ErrorHandler, Injectable, NgZone } from '@angular/core';
 import { async, fakeAsync, TestBed, tick } from '@angular/core/testing';
-import { of, throwError, timer } from 'rxjs';
-import { delay, skip, tap } from 'rxjs/operators';
+import { of, throwError, timer, Subject, Observable } from 'rxjs';
+import { delay, skip, tap, take } from 'rxjs/operators';
 
 import { State } from '../src/decorators/state';
 import { Action } from '../src/decorators/action';
@@ -797,11 +797,11 @@ describe('Dispatch', () => {
     });
 
     describe('when many separate actions dispatched return out of order', () => {
-      it('should notify of the completion of the relative observable', async(() => {
+      it('should notify of the completion of the relative observable', () => {
         class Append {
           static type = 'Test';
 
-          constructor(public payload: string) {}
+          constructor(public payload: Observable<string>) {}
         }
 
         @State<string>({
@@ -811,9 +811,9 @@ describe('Dispatch', () => {
         class MyState {
           @Action(Append)
           append({ getState, setState }: StateContext<string>, { payload }: Append) {
-            return of({}).pipe(
-              delay(payload.length * 10),
-              tap(() => setState(getState() + payload))
+            return payload.pipe(
+              tap(value => setState(getState() + value)),
+              take(1)
             );
           }
         }
@@ -822,17 +822,31 @@ describe('Dispatch', () => {
           imports: [NgxsModule.forRoot([MyState])]
         });
 
-        const store: Store = TestBed.get(Store);
+        const subjectA = new Subject<string>();
+        const subjectB = new Subject<string>();
+        const subjectC = new Subject<string>();
+        const subjectD = new Subject<string>();
 
+        const store: Store = TestBed.get(Store);
         store
-          .dispatch(new Append('dddd'))
-          .subscribe(state => expect(state.text).toEqual('abbcccdddd'));
-        store.dispatch(new Append('a')).subscribe(state => expect(state.text).toEqual('a'));
+          .dispatch(new Append(subjectD))
+          .subscribe(state => expect(state.text).toEqual('abcd'));
         store
-          .dispatch(new Append('ccc'))
-          .subscribe(state => expect(state.text).toEqual('abbccc'));
-        store.dispatch(new Append('bb')).subscribe(state => expect(state.text).toEqual('abb'));
-      }));
+          .dispatch(new Append(subjectA))
+          .subscribe(state => expect(state.text).toEqual('a'));
+        store
+          .dispatch(new Append(subjectC))
+          .subscribe(state => expect(state.text).toEqual('abc'));
+        store
+          .dispatch(new Append(subjectB))
+          .subscribe(state => expect(state.text).toEqual('ab'));
+        subjectA.next('a');
+        subjectB.next('b');
+        subjectC.next('c');
+        subjectD.next('d');
+        const endState = store.selectSnapshot(MyState);
+        expect(endState).toEqual('abcd');
+      });
     });
 
     describe('when many actions dispatched together', () => {
