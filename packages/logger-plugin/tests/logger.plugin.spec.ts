@@ -13,6 +13,9 @@ import { tap, delay } from 'rxjs/operators';
 describe('NgxsLoggerPlugin', () => {
   const thrownErrorMessage = 'Error';
   const defaultBarValue = 'baz';
+  const GREY_STYLE = 'color: #9E9E9E; font-weight: bold';
+  const GREEN_STYLE = 'color: #4CAF50; font-weight: bold';
+  const REDISH_STYLE = 'color: #FD8182; font-weight: bold';
 
   class UpdateBarAction {
     static type = 'UPDATE_BAR';
@@ -111,8 +114,8 @@ describe('NgxsLoggerPlugin', () => {
     // Assert
     const expectedCallStack = [
       ['group', 'action @@INIT (started @ )'],
-      ['log', '%c prev state', 'color: #9E9E9E; font-weight: bold', initialState],
-      ['log', '%c next state', 'color: #4CAF50; font-weight: bold', initialState],
+      ['log', '%c prev state', GREY_STYLE, initialState],
+      ['log', '%c next state', GREEN_STYLE, initialState],
       ['groupEnd']
     ];
     expect(logger.getCallStack()).toEqual(expectedCallStack);
@@ -131,8 +134,8 @@ describe('NgxsLoggerPlugin', () => {
     const newState = store.selectSnapshot(state => state);
     const expectedCallStack = [
       ['group', 'action UPDATE_BAR (started @ )'],
-      ['log', '%c prev state', 'color: #9E9E9E; font-weight: bold', initialState],
-      ['log', '%c next state', 'color: #4CAF50; font-weight: bold', newState],
+      ['log', '%c prev state', GREY_STYLE, initialState],
+      ['log', '%c next state', GREEN_STYLE, newState],
       ['groupEnd']
     ];
     expect(logger.getCallStack()).toEqual(expectedCallStack);
@@ -150,9 +153,9 @@ describe('NgxsLoggerPlugin', () => {
     // Assert
     const expectedCallStack = [
       ['group', 'action UPDATE_BAR (started @ )'],
-      ['log', '%c payload', 'color: #9E9E9E; font-weight: bold', { bar: 'qux' }],
-      ['log', '%c prev state', 'color: #9E9E9E; font-weight: bold', { test: { bar: '' } }],
-      ['log', '%c next state', 'color: #4CAF50; font-weight: bold', { test: { bar: 'qux' } }],
+      ['log', '%c payload', GREY_STYLE, { bar: 'qux' }],
+      ['log', '%c prev state', GREY_STYLE, { test: { bar: '' } }],
+      ['log', '%c next state', GREEN_STYLE, { test: { bar: 'qux' } }],
       ['groupEnd']
     ];
     expect(logger.getCallStack()).toEqual(expectedCallStack);
@@ -172,24 +175,14 @@ describe('NgxsLoggerPlugin', () => {
     // Assert
     const expectedCallStack = [
       ['group', 'action ASYNC_ACTION (started @ )'],
-      ['log', '%c payload', 'color: #9E9E9E; font-weight: bold', { bar: 'qux' }],
-      ['log', '%c prev state', 'color: #9E9E9E; font-weight: bold', { test: { bar: '' } }],
-      [
-        'log',
-        '%c next state (synchronous)',
-        'color: #4CAF50; font-weight: bold',
-        { test: { bar: '...' } }
-      ],
-      [
-        'log',
-        '%c ( action doing async work... )',
-        'color: #4CAF50; font-weight: bold',
-        undefined
-      ],
+      ['log', '%c payload', GREY_STYLE, { bar: 'qux' }],
+      ['log', '%c prev state', GREY_STYLE, { test: { bar: '' } }],
+      ['log', '%c next state (synchronous)', GREEN_STYLE, { test: { bar: '...' } }],
+      ['log', '%c ( action doing async work... )', GREEN_STYLE, undefined],
       ['groupEnd'],
       ['log', 'Some other work'],
       ['group', '(async work completed) action ASYNC_ACTION (started @ )'],
-      ['log', '%c next state', 'color: #4CAF50; font-weight: bold', { test: { bar: 'qux' } }],
+      ['log', '%c next state', GREEN_STYLE, { test: { bar: 'qux' } }],
       ['groupEnd']
     ];
     expect(logger.getCallStack()).toEqual(expectedCallStack);
@@ -206,14 +199,9 @@ describe('NgxsLoggerPlugin', () => {
     // Assert
     const expectedCallStack = [
       ['group', 'action ERROR (started @ )'],
-      ['log', '%c prev state', 'color: #9E9E9E; font-weight: bold', { test: { bar: '' } }],
-      [
-        'log',
-        '%c next state after error',
-        'color: #FD8182; font-weight: bold',
-        { test: { bar: '' } }
-      ],
-      ['log', '%c error', 'color: #FD8182; font-weight: bold', new Error('Error')],
+      ['log', '%c prev state', GREY_STYLE, { test: { bar: '' } }],
+      ['log', '%c next state after error', REDISH_STYLE, { test: { bar: '' } }],
+      ['log', '%c error', REDISH_STYLE, new Error('Error')],
       ['groupEnd']
     ];
 
@@ -236,30 +224,15 @@ describe('NgxsLoggerPlugin', () => {
     // Assert
     const expectedCallStack = [
       ['group', 'action ASYNC_ERROR (started @ )'],
-      ['log', '%c payload', 'color: #9E9E9E; font-weight: bold', { message: 'qux error' }],
-      ['log', '%c prev state', 'color: #9E9E9E; font-weight: bold', { test: { bar: '' } }],
-      [
-        'log',
-        '%c next state (synchronous)',
-        'color: #4CAF50; font-weight: bold',
-        { test: { bar: '...' } }
-      ],
-      [
-        'log',
-        '%c ( action doing async work... )',
-        'color: #4CAF50; font-weight: bold',
-        undefined
-      ],
+      ['log', '%c payload', GREY_STYLE, { message: 'qux error' }],
+      ['log', '%c prev state', GREY_STYLE, { test: { bar: '' } }],
+      ['log', '%c next state (synchronous)', GREEN_STYLE, { test: { bar: '...' } }],
+      ['log', '%c ( action doing async work... )', GREEN_STYLE, undefined],
       ['groupEnd'],
       ['log', 'Some other work'],
       ['group', '(async work error) action ASYNC_ERROR (started @ )'],
-      [
-        'log',
-        '%c next state after error',
-        'color: #FD8182; font-weight: bold',
-        { test: { bar: 'erroring' } }
-      ],
-      ['log', '%c error', 'color: #FD8182; font-weight: bold', new Error('qux error')],
+      ['log', '%c next state after error', REDISH_STYLE, { test: { bar: 'erroring' } }],
+      ['log', '%c error', REDISH_STYLE, new Error('qux error')],
       ['groupEnd']
     ];
     expect(logger.getCallStack()).toEqual(expectedCallStack);
@@ -276,8 +249,8 @@ describe('NgxsLoggerPlugin', () => {
     // Assert
     const expectedCallStack = [
       ['groupCollapsed', 'action UPDATE_BAR (started @ )'],
-      ['log', '%c prev state', 'color: #9E9E9E; font-weight: bold', { test: { bar: '' } }],
-      ['log', '%c next state', 'color: #4CAF50; font-weight: bold', { test: { bar: 'baz' } }],
+      ['log', '%c prev state', GREY_STYLE, { test: { bar: '' } }],
+      ['log', '%c next state', GREEN_STYLE, { test: { bar: 'baz' } }],
       ['groupEnd']
     ];
     expect(logger.getCallStack()).toEqual(expectedCallStack);
