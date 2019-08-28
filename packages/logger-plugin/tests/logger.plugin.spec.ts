@@ -11,8 +11,6 @@ import { LoggerSpy } from './helpers';
 import { tap, delay } from 'rxjs/operators';
 
 describe('NgxsLoggerPlugin', () => {
-  const thrownErrorMessage = 'Error';
-  const defaultBarValue = 'baz';
   const GREY_STYLE = 'color: #9E9E9E; font-weight: bold';
   const GREEN_STYLE = 'color: #4CAF50; font-weight: bold';
   const REDISH_STYLE = 'color: #FD8182; font-weight: bold';
@@ -20,7 +18,7 @@ describe('NgxsLoggerPlugin', () => {
   class UpdateBarAction {
     static type = 'UPDATE_BAR';
 
-    constructor(public bar?: string) {}
+    constructor(public bar: string = 'baz') {}
   }
 
   class AsyncAction {
@@ -40,49 +38,6 @@ describe('NgxsLoggerPlugin', () => {
 
   interface StateModel {
     bar: string;
-  }
-
-  const stateModelDefaults: StateModel = {
-    bar: ''
-  };
-
-  @State<StateModel>({
-    name: 'test',
-    defaults: stateModelDefaults
-  })
-  class TestState {
-    @Action(UpdateBarAction)
-    updateBar({ patchState }: StateContext<StateModel>, { bar }: UpdateBarAction) {
-      patchState({ bar: bar || defaultBarValue });
-    }
-
-    @Action(ErrorAction)
-    error() {
-      return throwError(new Error(thrownErrorMessage));
-    }
-
-    @Action(AsyncAction)
-    asyncAction({ patchState }: StateContext<StateModel>, { bar }: AsyncAction) {
-      patchState({ bar: '...' });
-      return of(null).pipe(
-        delay(1),
-        tap(() => {
-          patchState({ bar });
-        })
-      );
-    }
-
-    @Action(AsyncError)
-    asyncErrorAction({ patchState }: StateContext<StateModel>, { message }: AsyncError) {
-      patchState({ bar: '...' });
-      return of(null).pipe(
-        delay(1),
-        tap(() => {
-          patchState({ bar: 'erroring' });
-          throw new Error(message);
-        })
-      );
-    }
   }
 
   function setup(states: StateClass[], opts?: NgxsLoggerPluginOptions) {
@@ -109,33 +64,33 @@ describe('NgxsLoggerPlugin', () => {
 
   it('should log init action success with colors', () => {
     // Arrange & Act
-    const { store, logger } = setup([TestState]);
-    const initialState = store.selectSnapshot(state => state);
+    const stateModelDefaults: StateModel = { bar: '' };
+    @State<StateModel>({ name: 'test', defaults: stateModelDefaults })
+    class TestState {}
+
+    const { logger } = setup([TestState]);
     // Assert
     const expectedCallStack = [
       ['group', 'action @@INIT (started @ )'],
-      ['log', '%c prev state', GREY_STYLE, initialState],
-      ['log', '%c next state', GREEN_STYLE, initialState],
+      ['log', '%c prev state', GREY_STYLE, { test: stateModelDefaults }],
+      ['log', '%c next state', GREEN_STYLE, { test: stateModelDefaults }],
       ['groupEnd']
     ];
     expect(logger.getCallStack()).toEqual(expectedCallStack);
   });
 
-  it('should log success action with colors', () => {
-    // Arrange
-    const { store, logger } = setup([TestState]);
-    logger.clear();
-    const initialState = store.selectSnapshot(state => state);
+  it('should log init action success with new init payload', () => {
+    // Arrange & Act
+    const stateModelDefaults: StateModel = { bar: '' };
+    @State<StateModel>({ name: 'test', defaults: stateModelDefaults })
+    class TestState {}
 
-    // Act
-    store.dispatch(new UpdateBarAction());
-
+    const { logger } = setup([TestState]);
     // Assert
-    const newState = store.selectSnapshot(state => state);
     const expectedCallStack = [
-      ['group', 'action UPDATE_BAR (started @ )'],
-      ['log', '%c prev state', GREY_STYLE, initialState],
-      ['log', '%c next state', GREEN_STYLE, newState],
+      ['group', 'action @@INIT (started @ )'],
+      ['log', '%c prev state', GREY_STYLE, { test: { bar: '' } }],
+      ['log', '%c next state', GREEN_STYLE, { test: { bar: '' } }],
       ['groupEnd']
     ];
     expect(logger.getCallStack()).toEqual(expectedCallStack);
@@ -143,6 +98,14 @@ describe('NgxsLoggerPlugin', () => {
 
   it('should log success action with payload', () => {
     // Arrange
+    @State<StateModel>({ name: 'test', defaults: { bar: '' } })
+    class TestState {
+      @Action(UpdateBarAction)
+      updateBar({ patchState }: StateContext<StateModel>, { bar }: UpdateBarAction) {
+        patchState({ bar });
+      }
+    }
+
     const { store, logger } = setup([TestState]);
     logger.clear();
     const payload = 'qux';
@@ -163,6 +126,20 @@ describe('NgxsLoggerPlugin', () => {
 
   it('should log async success action', async () => {
     // Arrange
+    @State<StateModel>({ name: 'test', defaults: { bar: '' } })
+    class TestState {
+      @Action(AsyncAction)
+      asyncAction({ patchState }: StateContext<StateModel>, { bar }: AsyncAction) {
+        patchState({ bar: '...' });
+        return of(null).pipe(
+          delay(1),
+          tap(() => {
+            patchState({ bar });
+          })
+        );
+      }
+    }
+
     const { store, logger } = setup([TestState]);
     logger.clear();
     const payload = 'qux';
@@ -190,6 +167,14 @@ describe('NgxsLoggerPlugin', () => {
 
   it('should log error action with colors', () => {
     // Arrange
+    @State<StateModel>({ name: 'test', defaults: { bar: '' } })
+    class TestState {
+      @Action(ErrorAction)
+      error() {
+        return throwError(new Error('My Error'));
+      }
+    }
+
     const { store, logger } = setup([TestState]);
     logger.clear();
 
@@ -201,7 +186,7 @@ describe('NgxsLoggerPlugin', () => {
       ['group', 'action ERROR (started @ )'],
       ['log', '%c prev state', GREY_STYLE, { test: { bar: '' } }],
       ['log', '%c next state after error', REDISH_STYLE, { test: { bar: '' } }],
-      ['log', '%c error', REDISH_STYLE, new Error('Error')],
+      ['log', '%c error', REDISH_STYLE, new Error('My Error')],
       ['groupEnd']
     ];
 
@@ -210,6 +195,21 @@ describe('NgxsLoggerPlugin', () => {
 
   it('should log async error action', async () => {
     // Arrange
+    @State<StateModel>({ name: 'test', defaults: { bar: '' } })
+    class TestState {
+      @Action(AsyncError)
+      asyncErrorAction({ patchState }: StateContext<StateModel>, { message }: AsyncError) {
+        patchState({ bar: '...' });
+        return of(null).pipe(
+          delay(1),
+          tap(() => {
+            patchState({ bar: 'erroring' });
+            throw new Error(message);
+          })
+        );
+      }
+    }
+
     const { store, logger } = setup([TestState]);
     logger.clear();
     const errorMessage = 'qux error';
@@ -240,6 +240,14 @@ describe('NgxsLoggerPlugin', () => {
 
   it('should log collapsed success action', () => {
     // Arrange
+    @State<StateModel>({ name: 'test', defaults: { bar: '' } })
+    class TestState {
+      @Action(UpdateBarAction)
+      updateBar({ patchState }: StateContext<StateModel>, { bar }: UpdateBarAction) {
+        patchState({ bar });
+      }
+    }
+
     const { store, logger } = setup([TestState], { collapsed: true });
     logger.clear();
 
@@ -249,6 +257,7 @@ describe('NgxsLoggerPlugin', () => {
     // Assert
     const expectedCallStack = [
       ['groupCollapsed', 'action UPDATE_BAR (started @ )'],
+      ['log', '%c payload', GREY_STYLE, { bar: 'baz' }],
       ['log', '%c prev state', GREY_STYLE, { test: { bar: '' } }],
       ['log', '%c next state', GREEN_STYLE, { test: { bar: 'baz' } }],
       ['groupEnd']
@@ -258,6 +267,14 @@ describe('NgxsLoggerPlugin', () => {
 
   it('should not log while disabled', () => {
     // Arrange
+    @State<StateModel>({ name: 'test', defaults: { bar: '' } })
+    class TestState {
+      @Action(UpdateBarAction)
+      updateBar({ patchState }: StateContext<StateModel>, { bar }: UpdateBarAction) {
+        patchState({ bar });
+      }
+    }
+
     const { store, logger } = setup([TestState], { disabled: true });
 
     // Act
