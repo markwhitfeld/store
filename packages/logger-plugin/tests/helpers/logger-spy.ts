@@ -36,15 +36,39 @@ export class LoggerSpy {
     return LoggerSpy.createCallStack(callStackWithoutTime);
   }
 
-  getCallStack(options: { excludeStyles?: boolean } = {}): any[] {
+  getCallStack(options: { excludeStyles?: boolean; indent?: boolean } = {}): any[] {
+    const indent = options.indent ? createIndenter() : createNoop();
     return this._callStack.map(call => {
       call = removeTime(call);
+      call = indent(call);
       if (options.excludeStyles) {
         call = removeStyle(call);
       }
       return call;
     });
   }
+}
+
+function createIndenter() {
+  function indent(item: Call, level: number) {
+    const [first, ...rest] = item;
+    return [' '.repeat(level) + first, ...rest];
+  }
+  let indentationLevel = 0;
+  return function(item: Call): Call {
+    switch (item[0]) {
+      case 'group':
+        return indent(item, indentationLevel++);
+      case 'groupEnd':
+        return indent(item, --indentationLevel);
+      default:
+        return indent(item, indentationLevel);
+    }
+  };
+}
+
+function createNoop() {
+  return (item: Call) => item;
 }
 
 function removeTime(item: Call): Call {
