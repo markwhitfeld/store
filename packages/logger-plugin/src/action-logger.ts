@@ -52,19 +52,19 @@ export class ActionLogger {
     this.synchronousWorkEnded = true;
   }
 
-  private getActionLogHeader() {
+  private getActionLogHeader(): string {
     const actionName = getActionTypeFromInstance(this.action);
     const formattedTime = formatTime(this.startedTime);
     const message = `action ${actionName} (started @ ${formattedTime})`;
     return message;
   }
 
-  private _hasPayload(event: any) {
+  private _hasPayload(event: any): boolean {
     const nonEmptyProperties = this._getNonEmptyProperties(event);
     return nonEmptyProperties.length > 0;
   }
 
-  private _getNonEmptyProperties(event: any) {
+  private _getNonEmptyProperties(event: any): any[] {
     const keys = Object.keys(event);
     const values = keys.map(key => event[key]);
     return values.filter(value => !!value);
