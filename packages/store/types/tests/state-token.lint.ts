@@ -6,9 +6,6 @@ import { Observable } from 'rxjs';
 
 describe('[TEST]: StateToken', () => {
   it('should be provide generic', () => {
-    @State({ name: 'myState' })
-    class MyState { }
-
     // Argument of type '"hello"' is not assignable to parameter of type '"You must provide a type parameter"'.
     StateToken.create('hello'); // $ExpectError
     StateToken.create<string[]>('todos'); // $ExpectType StateToken<string[]>
