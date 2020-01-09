@@ -179,6 +179,40 @@ export class MyStorageEngine implements StorageEngine {
 export class MyModule {}
 ```
 
+### Serialization
+
+You can define your own serialization or use the `SerializationStrategy` in case you need
+to alter the state.
+
+```ts
+const serialization = new SerializationStrategy([{
+  key: 'counter',
+  onAfterDeserialize: (obj) => new CounterInfoStateModel(obj.count)
+  onBeforeSerialize: (obj) => {
+    return {
+      count: obj.count < 10 ? obj.count : 10
+    }
+  }
+}]);
+
+@NgModule({
+  imports: [
+    NgxsStoragePluginModule.forRoot({
+      key: 'counter',
+      deserialize: (obj, key) => serialization.deserialize(obj, key),
+      serialize: (obj, key) => serialization.serialize(obj, key)
+    })
+  ]
+})
+export class AppModule {}
+```
+
+In the `SerializationStrategy` we define:
+
+- `key`: The key for the item to serialize/deserialize. If not specified, it takes the entire storage state.
+- `onAfterDeserialize`: The function to execute after the deserialization happens. You can use it to instantiate a concrete class from the state.
+- `onBeforeSerialize`: The function to execute before the serialization happens. You can use it to alter the state.
+
 ### Migrations
 
 You can migrate data from one version to another during the startup of the store. Below

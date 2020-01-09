@@ -61,3 +61,4 @@ Thumbs.db
 package-lock.json
 dist-integration-server/
 .cache
+/.vs

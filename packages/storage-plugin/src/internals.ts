@@ -46,8 +46,8 @@ export function storageOptionsFactory(
   return {
     key: [DEFAULT_STATE_KEY],
     storage: StorageOption.LocalStorage,
-    serialize: JSON.stringify,
-    deserialize: JSON.parse,
+    serialize: obj => JSON.stringify(obj),
+    deserialize: obj => JSON.parse(obj),
     ...options
   };
 }

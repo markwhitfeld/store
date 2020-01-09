@@ -3,7 +3,13 @@ import { TestBed } from '@angular/core/testing';
 import { NgxsModule, State, Store, Action, StateContext } from '@ngxs/store';
 
 import { DEFAULT_STATE_KEY } from '../src/internals';
-import { NgxsStoragePluginModule, StorageOption, StorageEngine, STORAGE_ENGINE } from '../';
+import {
+  NgxsStoragePluginModule,
+  SerializationStrategy,
+  StorageOption,
+  StorageEngine,
+  STORAGE_ENGINE
+} from '../';
 
 describe('NgxsStoragePlugin', () => {
   class Increment {
@@ -43,6 +49,16 @@ describe('NgxsStoragePlugin', () => {
     defaults: { count: 0 }
   })
   class LazyLoadedState {}
+
+  class CounterInfoStateModel {
+    constructor(public count: number) {}
+  }
+
+  @State<CounterInfoStateModel>({
+    name: 'counterInfo',
+    defaults: { count: 0 }
+  })
+  class CounterInfoState {}
 
   afterEach(() => {
     localStorage.removeItem(DEFAULT_STATE_KEY);
@@ -460,6 +476,77 @@ describe('NgxsStoragePlugin', () => {
         },
         names: ['Mark', 'Artur', 'Max']
       });
+    });
+  });
+
+  describe('Custom serialization', () => {
+    it('should alter object before serialization.', () => {
+      // Arrange
+      localStorage.setItem(DEFAULT_STATE_KEY, JSON.stringify({ counter: { count: 100 } }));
+
+      const serialization = new SerializationStrategy([
+        {
+          onBeforeSerialize: obj => {
+            return {
+              counter: {
+                count: obj.counter.count * 2
+              }
+            };
+          }
+        }
+      ]);
+
+      // Act
+      TestBed.configureTestingModule({
+        imports: [
+          NgxsModule.forRoot([CounterState]),
+          NgxsStoragePluginModule.forRoot({
+            serialize: (obj, key) => serialization.serialize(obj, key)
+          })
+        ]
+      });
+
+      const store: Store = TestBed.get(Store);
+
+      store.dispatch(new Increment());
+
+      const state: CounterStateModel = store.selectSnapshot(CounterState);
+
+      // Assert
+      expect(state.count).toBe(101);
+      expect(localStorage.getItem(DEFAULT_STATE_KEY)).toBe(
+        JSON.stringify({ counter: { count: 202 } })
+      );
+    });
+
+    it('should alter state and return concrete type after deserialization.', () => {
+      // Arrange
+      localStorage.setItem('counterInfo', JSON.stringify({ count: 100 }));
+
+      const serialization = new SerializationStrategy([
+        {
+          key: 'counterInfo',
+          onAfterDeserialize: obj => new CounterInfoStateModel(obj.count)
+        }
+      ]);
+
+      // Act
+      TestBed.configureTestingModule({
+        imports: [
+          NgxsModule.forRoot([CounterInfoState]),
+          NgxsStoragePluginModule.forRoot({
+            key: 'counterInfo',
+            deserialize: (obj, key) => serialization.deserialize(obj, key)
+          })
+        ]
+      });
+
+      const store: Store = TestBed.get(Store);
+      const state: CounterInfoStateModel = store.selectSnapshot(CounterInfoState);
+
+      // Assert
+      expect(state).toBeInstanceOf(CounterInfoStateModel);
+      expect(state.count).toBe(100);
     });
   });
 });

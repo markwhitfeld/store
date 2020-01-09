@@ -46,7 +46,7 @@ export class NgxsStoragePlugin implements NgxsPlugin {
 
         if (val !== 'undefined' && typeof val !== 'undefined' && val !== null) {
           try {
-            val = this._options.deserialize!(val);
+            val = this._options.deserialize!(val, key);
           } catch (e) {
             console.error(
               'Error ocurred while deserializing the store value, falling back to empty object.'
@@ -86,7 +86,7 @@ export class NgxsStoragePlugin implements NgxsPlugin {
             }
 
             try {
-              this._engine.setItem(key!, this._options.serialize!(val));
+              this._engine.setItem(key!, this._options.serialize!(val, key));
             } catch (e) {
               console.error(
                 'Error ocurred while serializing the store value, value not updated.'
