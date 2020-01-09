@@ -187,7 +187,7 @@ to alter the state.
 ```ts
 const serialization = new SerializationStrategy([{
   key: 'counter',
-  onAfterDeserialize: (obj) => new CounterInfoStateModel(obj.count)
+  onAfterDeserialize: (obj) => new CounterInfoStateModel(obj.count),
   onBeforeSerialize: (obj) => {
     return {
       count: obj.count < 10 ? obj.count : 10
