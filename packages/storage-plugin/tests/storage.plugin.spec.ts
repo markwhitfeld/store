@@ -548,5 +548,29 @@ describe('NgxsStoragePlugin', () => {
       expect(state).toBeInstanceOf(CounterInfoStateModel);
       expect(state.count).toBe(100);
     });
+
+    it('Should not introduce any breaking changes.', () => {
+      // Arrange
+      localStorage.setItem('counter', JSON.stringify({ count: 100 }));
+
+      const deserialize = (obj: any): any => JSON.parse(obj);
+
+      // Act
+      TestBed.configureTestingModule({
+        imports: [
+          NgxsModule.forRoot([CounterState]),
+          NgxsStoragePluginModule.forRoot({
+            key: 'counter',
+            deserialize: deserialize
+          })
+        ]
+      });
+
+      const store: Store = TestBed.get(Store);
+      const state = store.selectSnapshot(CounterState);
+
+      // Assert
+      expect(state.count).toBe(100);
+    });
   });
 });
