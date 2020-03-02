@@ -21,22 +21,26 @@ export class SerializationStrategy {
   constructor(private _options: SerializationOption[]) {}
 
   beforeSerialize(obj: any, key: string): any {
-    return this._executeStrategy(obj, key, strategy =>
-      strategy.onBeforeSerialize ? strategy.onBeforeSerialize(obj) : obj
-    );
+    return this._executeStrategy(obj, key, option => option.onBeforeSerialize);
   }
 
   afterDeserialize(obj: any, key: string): any {
-    return this._executeStrategy(obj, key, strategy =>
-      strategy.onAfterDeserialize ? strategy.onAfterDeserialize(obj) : obj
-    );
+    return this._executeStrategy(obj, key, option => option.onAfterDeserialize);
   }
 
-  private _executeStrategy(obj: any, key: string, func: (option: SerializationOption) => any) {
+  private _executeStrategy(
+    obj: any,
+    key: string,
+    func: (option: SerializationOption) => ((obj: any) => any) | undefined
+  ) {
     const strategy = this._findStrategy(key);
 
     if (strategy) {
-      return func(strategy);
+      const prototype = func(strategy);
+
+      if (prototype) {
+        return prototype(obj);
+      }
     }
 
     return obj;
