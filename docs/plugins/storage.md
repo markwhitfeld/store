@@ -181,26 +181,28 @@ export class MyModule {}
 
 ### Serialization
 
-You can define your own serialization or use the `SerializationStrategy` in case you need
+You can define your own logic or use the `SerializationStrategy` in case you need
 to alter the state.
 
 ```ts
-const serialization = new SerializationStrategy([{
-  key: 'counter',
-  onAfterDeserialize: (obj) => new CounterInfoStateModel(obj.count),
-  onBeforeSerialize: (obj) => {
-    return {
-      count: obj.count < 10 ? obj.count : 10
+const serialization = new SerializationStrategy([
+  {
+    key: 'counter',
+    onAfterDeserialize: obj => new CounterInfoStateModel(obj.count),
+    onBeforeSerialize: obj => {
+      return {
+        count: obj.count < 10 ? obj.count : 10
+      };
     }
   }
-}]);
+]);
 
 @NgModule({
   imports: [
     NgxsStoragePluginModule.forRoot({
       key: 'counter',
-      deserialize: (obj, key) => serialization.deserialize(obj, key),
-      serialize: (obj, key) => serialization.serialize(obj, key)
+      beforeSerialize: (obj, key) => serialization.beforeSerialize(obj, key),
+      afterDeserialize: (obj, key) => serialization.afterDeserialize(obj, key)
     })
   ]
 })

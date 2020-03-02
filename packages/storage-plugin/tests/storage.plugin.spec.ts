@@ -484,7 +484,7 @@ describe('NgxsStoragePlugin', () => {
       // Arrange
       localStorage.setItem(DEFAULT_STATE_KEY, JSON.stringify({ counter: { count: 100 } }));
 
-      const serialization = new SerializationStrategy([
+      const strategy = new SerializationStrategy([
         {
           onBeforeSerialize: obj => {
             return {
@@ -501,7 +501,7 @@ describe('NgxsStoragePlugin', () => {
         imports: [
           NgxsModule.forRoot([CounterState]),
           NgxsStoragePluginModule.forRoot({
-            serialize: (obj, key) => serialization.serialize(obj, key)
+            beforeSerialize: (val, key) => strategy.beforeSerialize(val, key)
           })
         ]
       });
@@ -523,7 +523,7 @@ describe('NgxsStoragePlugin', () => {
       // Arrange
       localStorage.setItem('counterInfo', JSON.stringify({ count: 100 }));
 
-      const serialization = new SerializationStrategy([
+      const strategy = new SerializationStrategy([
         {
           key: 'counterInfo',
           onAfterDeserialize: obj => new CounterInfoStateModel(obj.count)
@@ -536,7 +536,7 @@ describe('NgxsStoragePlugin', () => {
           NgxsModule.forRoot([CounterInfoState]),
           NgxsStoragePluginModule.forRoot({
             key: 'counterInfo',
-            deserialize: (obj, key) => serialization.deserialize(obj, key)
+            afterDeserialize: (val, key) => strategy.afterDeserialize(val, key)
           })
         ]
       });
@@ -553,15 +553,14 @@ describe('NgxsStoragePlugin', () => {
       // Arrange
       localStorage.setItem('counter', JSON.stringify({ count: 100 }));
 
-      const deserialize = (obj: any): any => JSON.parse(obj);
-
       // Act
       TestBed.configureTestingModule({
         imports: [
           NgxsModule.forRoot([CounterState]),
           NgxsStoragePluginModule.forRoot({
             key: 'counter',
-            deserialize: deserialize
+            serialize: JSON.stringify,
+            deserialize: JSON.parse
           })
         ]
       });

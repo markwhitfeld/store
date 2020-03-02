@@ -20,37 +20,27 @@ export interface SerializationOption {
 export class SerializationStrategy {
   constructor(private _options: SerializationOption[]) {}
 
-  serialize(obj: any, key?: string): string {
+  beforeSerialize(obj: any, key: string): any {
     const strategy = this._findStrategy(key);
-    let val = obj;
 
     if (strategy && strategy.onBeforeSerialize) {
-      val = strategy.onBeforeSerialize(val);
+      return strategy.onBeforeSerialize(obj);
     }
 
-    return this.serializeInternal(val);
+    return obj;
   }
 
-  deserialize(obj: any, key?: string): any {
+  afterDeserialize(obj: any, key: string): any {
     const strategy = this._findStrategy(key);
-    let val = this.deserializeInternal(obj);
 
     if (strategy && strategy.onAfterDeserialize) {
-      val = strategy.onAfterDeserialize(val);
+      return strategy.onAfterDeserialize(obj);
     }
 
-    return val;
+    return obj;
   }
 
-  protected serializeInternal(obj: any): string {
-    return JSON.stringify(obj);
-  }
-
-  protected deserializeInternal(obj: any): any {
-    return JSON.parse(obj);
-  }
-
-  private _findStrategy(key?: string): SerializationOption | undefined {
+  private _findStrategy(key: string): SerializationOption | undefined {
     return this._options.find(
       strategy => (!strategy.key && key === DEFAULT_STATE_KEY) || strategy.key === key
     );
