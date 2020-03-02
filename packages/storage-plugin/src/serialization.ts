@@ -21,20 +21,22 @@ export class SerializationStrategy {
   constructor(private _options: SerializationOption[]) {}
 
   beforeSerialize(obj: any, key: string): any {
-    const strategy = this._findStrategy(key);
-
-    if (strategy && strategy.onBeforeSerialize) {
-      return strategy.onBeforeSerialize(obj);
-    }
-
-    return obj;
+    return this._executeStrategy(obj, key, strategy =>
+      strategy.onBeforeSerialize ? strategy.onBeforeSerialize(obj) : obj
+    );
   }
 
   afterDeserialize(obj: any, key: string): any {
+    return this._executeStrategy(obj, key, strategy =>
+      strategy.onAfterDeserialize ? strategy.onAfterDeserialize(obj) : obj
+    );
+  }
+
+  private _executeStrategy(obj: any, key: string, func: (option: SerializationOption) => any) {
     const strategy = this._findStrategy(key);
 
-    if (strategy && strategy.onAfterDeserialize) {
-      return strategy.onAfterDeserialize(obj);
+    if (strategy) {
+      return func(strategy);
     }
 
     return obj;
