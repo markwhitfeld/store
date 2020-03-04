@@ -40,7 +40,8 @@
 
 ### Quick Links
 
-- ✨ Learn about it on the [docs site](https://ngxs.gitbooks.io/ngxs/)
+- ✨ Learn about it on the [docs site](https://ngxs.io/)
+- 🌱 NGXS works with Ivy! Check out the [Ivy migration guide](https://ngxs.io/advanced/ivy-migration-guide)
 - 🚀 See it in action on [Stackblitz](https://stackblitz.com/edit/ngxs-repro)
 - 😎 Checkout the [sample application](integration)
 - 🔧 Scaffolding application using [NGXS Schematics](https://github.com/ngxs/schematics)
@@ -132,6 +133,7 @@ If you have ideas for creating unique libraries, you can join us. Email us at `n
 | **NGXS-labs Entity state**              | [`@ngxs-labs/entity-state`](https://npmjs.com/package/@ngxs-labs/entity-state)                 | [![latest](https://img.shields.io/npm/v/%40ngxs-labs%2Fentity-state/latest.svg)](https://npmjs.com/package/@ngxs-labs/entity-state)                 | [![README](https://img.shields.io/badge/README--green.svg)](https://github.com/ngxs-labs/entity-state)         |
 | **NGXS-labs Testing tools**             | [`@ngxs-labs/testing`](https://npmjs.com/package/@ngxs-labs/testing)                           | [![latest](https://img.shields.io/npm/v/%40ngxs-labs%2Ftesting/latest.svg)](https://npmjs.com/package/@ngxs-labs/testing)                           | [![README](https://img.shields.io/badge/README--green.svg)](https://github.com/ngxs-labs/testing)              |
 | **NGXS-labs Actions Executing**         | [`@ngxs-labs/actions-executing`](https://npmjs.com/package/@ngxs-labs/actions-executing)       | [![latest](https://img.shields.io/npm/v/%40ngxs-labs%2Ftesting/latest.svg)](https://npmjs.com/package/@ngxs-labs/actions-executing)                 | [![README](https://img.shields.io/badge/README--green.svg)](https://github.com/ngxs-labs/actions-executing)    |
+| **NGXS-labs Attach Action**             | [`@ngxs-labs/attach-action`](https://npmjs.com/package/@ngxs-labs/attach-action)               | [![latest](https://img.shields.io/npm/v/%40ngxs-labs%2Fattach-action/latest.svg)](https://npmjs.com/package/@ngxs-labs/attach-action)               | [![README](https://img.shields.io/badge/README--green.svg)](https://github.com/ngxs-labs/attach-action)        |
 
 #### Community
 

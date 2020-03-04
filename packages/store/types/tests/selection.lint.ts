@@ -20,14 +20,14 @@ describe('[TEST]: Action Types', () => {
   it('should be correct type in selector/select decorator', () => {
     class Any {}
 
-    Selector(); // $ExpectType MethodDecorator
-    assertType(() => Selector([{ foo: 'bar' }])); // $ExpectType MethodDecorator
+    Selector(); // $ExpectType SelectorType<unknown>
+    assertType(() => Selector([{ foo: 'bar' }])); // $ExpectType SelectorType<{ foo: string; }>
     assertType(() => Selector({})); // $ExpectError
 
-    Select(); // $ExpectType PropertyDecorator
-    assertType(() => Select({})); // $ExpectType PropertyDecorator
-    assertType(() => Select([])); // $ExpectType PropertyDecorator
-    assertType(() => Select(Any, 'a', 'b', 'c')); // $ExpectType PropertyDecorator
+    Select(); // $ExpectType SelectType<unknown>
+    assertType(() => Select({})); // $ExpectType SelectType<{}>
+    assertType(() => Select([])); // $ExpectType SelectType<never[]>
+    assertType(() => Select(Any, 'a', 'b', 'c')); // $ExpectType SelectType<typeof Any>
     assertType(() => Select(Any, ['a', 'b', 'c'])); // $ExpectError
 
     class AppComponent {
@@ -93,8 +93,10 @@ describe('[TEST]: Action Types', () => {
     class CheckSelectorComponent {
       @Select() public A$: Observable<any>; // $ExpectType Observable<any>
       @Select(TodoState) public B$: Observable<Any>; // $ExpectType Observable<Any>
-      @Select(TodoState.reverse) public C$: Observable<Any>; // $ExpectType Observable<Any>
-      @Select(TodoState.reverse) public D$: number | object; // $ExpectType number | object
+      @Select(TodoState.reverse) public C$: Observable<Any>; // $ExpectError
+      @Select(TodoState.reverse) public C1$: Observable<string[]>; // $ExpectType Observable<string[]>
+      @Select(TodoState.reverse) public D$: number | object; // $ExpectError
+      @Select(TodoState.reverse) public D1$: Observable<string[]>; // $ExpectType Observable<string[]>
     }
 
     TestBed.get(CheckSelectorComponent); // $ExpectType any

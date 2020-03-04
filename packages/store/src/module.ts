@@ -55,7 +55,7 @@ export class NgxsModule {
   public static forRoot(
     states: StateClass[] = [],
     options: NgxsModuleOptions = {}
-  ): ModuleWithProviders {
+  ): ModuleWithProviders<NgxsRootModule> {
     return {
       ngModule: NgxsRootModule,
       providers: [
@@ -84,7 +84,7 @@ export class NgxsModule {
   /**
    * Feature module factory
    */
-  public static forFeature(states: StateClass[] = []): ModuleWithProviders {
+  public static forFeature(states: StateClass[] = []): ModuleWithProviders<NgxsFeatureModule> {
     return {
       ngModule: NgxsFeatureModule,
       providers: [
@@ -106,12 +106,12 @@ export class NgxsModule {
   ): Provider[] {
     return [
       {
-        provide: NG_DEV_MODE,
-        useFactory: NgxsModule.isAngularInTestMode
+        provide: NG_TEST_MODE,
+        useValue: isAngularInTestMode
       },
       {
-        provide: NG_TEST_MODE,
-        useFactory: NgxsModule.isAngularDevMode
+        provide: NG_DEV_MODE,
+        useValue: isDevMode
       },
       {
         provide: NGXS_EXECUTION_STRATEGY,
@@ -157,14 +157,6 @@ export class NgxsModule {
 
   private static appBootstrapListenerFactory(bootstrapper: NgxsBootstrapper): Function {
     return () => bootstrapper.bootstrap();
-  }
-
-  private static isAngularInTestMode(): Function {
-    return () => isAngularInTestMode();
-  }
-
-  private static isAngularDevMode(): Function {
-    return () => isDevMode();
   }
 
   private static getInitialState() {

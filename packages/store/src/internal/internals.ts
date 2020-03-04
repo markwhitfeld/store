@@ -12,10 +12,6 @@ import {
 import { ActionHandlerMetaData } from '../actions/symbols';
 import { getValue } from '../utils/utils';
 
-function asReadonly<T>(value: T): Readonly<T> {
-  return value;
-}
-
 // inspired from https://stackoverflow.com/a/43674389
 export interface StateClassInternal<T = any, U = any> extends StateClass<T> {
   [META_KEY]?: MetaDataModel;
@@ -38,11 +34,17 @@ export interface MetaDataModel {
   actions: PlainObjectOf<ActionHandlerMetaData[]>;
   defaults: any;
   path: string | null;
-  selectFromAppState: SelectFromState | null;
+  makeRootSelector: SelectorFactory | null;
   children?: StateClassInternal[];
 }
 
-export type SelectFromState = (state: any) => any;
+export interface RuntimeSelectorContext {
+  getStateGetter(key: any): (state: any) => any;
+  getSelectorOptions(localOptions?: SharedSelectorOptions): SharedSelectorOptions;
+}
+
+export type SelectFromRootState = (rootState: any) => any;
+export type SelectorFactory = (runtimeContext: RuntimeSelectorContext) => SelectFromRootState;
 
 export interface SharedSelectorOptions {
   injectContainerState?: boolean;
@@ -50,7 +52,7 @@ export interface SharedSelectorOptions {
 }
 
 export interface SelectorMetaDataModel {
-  selectFromAppState: SelectFromState | null;
+  makeRootSelector: SelectorFactory | null;
   originalFn: Function | null;
   containerClass: any;
   selectorName: string | null;
@@ -63,7 +65,7 @@ export interface MappedStore {
   actions: PlainObjectOf<ActionHandlerMetaData[]>;
   defaults: any;
   instance: any;
-  depth: string;
+  path: string;
 }
 
 export interface StatesAndDefaults {
@@ -90,7 +92,9 @@ export function ensureStoreMetadata(target: StateClassInternal): MetaDataModel {
       actions: {},
       defaults: {},
       path: null,
-      selectFromAppState: null,
+      makeRootSelector(context: RuntimeSelectorContext) {
+        return context.getStateGetter(defaultMetadata.name);
+      },
       children: []
     };
 
@@ -108,18 +112,6 @@ export function getStoreMetadata(target: StateClassInternal): MetaDataModel {
   return target[META_KEY]!;
 }
 
-// closure variable used to store the global options
-let _globalSelectorOptions: SharedSelectorOptions = {};
-
-export const globalSelectorOptions = asReadonly({
-  get(): Readonly<SharedSelectorOptions> {
-    return _globalSelectorOptions;
-  },
-  set(value: Readonly<SharedSelectorOptions>) {
-    _globalSelectorOptions = { ...value };
-  }
-});
-
 /**
  * Ensures metadata is attached to the selector and returns it.
  *
@@ -128,7 +120,7 @@ export const globalSelectorOptions = asReadonly({
 export function ensureSelectorMetadata(target: Function): SelectorMetaDataModel {
   if (!target.hasOwnProperty(SELECTOR_META_KEY)) {
     const defaultMetadata: SelectorMetaDataModel = {
-      selectFromAppState: null,
+      makeRootSelector: null,
       originalFn: null,
       containerClass: null,
       selectorName: null,
@@ -376,7 +368,7 @@ export function getStateDiffChanges<T>(
   mappedStore: MappedStore,
   diff: RootStateDiff<T>
 ): NgxsSimpleChange {
-  const previousValue: T = getValue(diff.currentAppState, mappedStore.depth);
-  const currentValue: T = getValue(diff.newAppState, mappedStore.depth);
+  const previousValue: T = getValue(diff.currentAppState, mappedStore.path);
+  const currentValue: T = getValue(diff.newAppState, mappedStore.path);
   return new NgxsSimpleChange(previousValue, currentValue, !mappedStore.isInitialised);
 }

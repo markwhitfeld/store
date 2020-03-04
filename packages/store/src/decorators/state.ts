@@ -1,7 +1,9 @@
+import { StateClass } from '@ngxs/store/internals';
+
 import { ensureStoreMetadata, MetaDataModel, StateClassInternal } from '../internal/internals';
 import { META_KEY, META_OPTIONS_KEY, StoreOptions } from '../symbols';
 import { StoreValidators } from '../utils/store-validators';
-import { StateClass } from '@ngxs/store/internals';
+import { ensureStateClassIsInjectable } from '../ivy/ensure-state-class-is-injectable';
 
 interface MutateMetaOptions<T> {
   meta: MetaDataModel;
@@ -22,7 +24,9 @@ export function State<T>(options: StoreOptions<T>) {
   function mutateMetaData(params: MutateMetaOptions<T>): void {
     const { meta, inheritedStateClass, optionsWithInheritance } = params;
     const { children, defaults, name } = optionsWithInheritance;
-    StoreValidators.checkCorrectStateName(name);
+    const stateName: string | null =
+      typeof name === 'string' ? name : (name && name.getName()) || null;
+    StoreValidators.checkCorrectStateName(stateName);
 
     if (inheritedStateClass.hasOwnProperty(META_KEY)) {
       const inheritedMeta: Partial<MetaDataModel> = inheritedStateClass[META_KEY] || {};
@@ -31,10 +35,11 @@ export function State<T>(options: StoreOptions<T>) {
 
     meta.children = children;
     meta.defaults = defaults;
-    meta.name = name;
+    meta.name = stateName;
   }
 
   return (target: StateClass): void => {
+    ensureStateClassIsInjectable(target);
     const stateClass: StateClassInternal = target;
     const meta: MetaDataModel = ensureStoreMetadata(stateClass);
     const inheritedStateClass: StateClassInternal = Object.getPrototypeOf(stateClass);

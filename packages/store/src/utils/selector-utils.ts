@@ -4,10 +4,11 @@ import {
   ensureSelectorMetadata,
   getSelectorMetadata,
   getStoreMetadata,
-  globalSelectorOptions,
-  SelectFromState,
   SelectorMetaDataModel,
-  SharedSelectorOptions
+  SharedSelectorOptions,
+  RuntimeSelectorContext,
+  SelectorFactory,
+  SelectFromRootState
 } from '../internal/internals';
 
 const SELECTOR_OPTIONS_META_KEY = 'NGXS_SELECTOR_OPTIONS_META';
@@ -30,7 +31,7 @@ interface CreationMetadata {
 
 interface RuntimeSelectorInfo {
   selectorOptions: SharedSelectorOptions;
-  argumentSelectorFunctions: ((state: any) => any)[];
+  argumentSelectorFunctions: SelectFromRootState[];
 }
 
 /**
@@ -54,44 +55,46 @@ export function createSelector<T extends (...args: any[]) => any>(
     return returnValue;
   } as T;
   const memoizedFn = memoize(wrappedFn);
-  const selectorMetaData = setupSelectorMetadata<T>(memoizedFn, originalFn, creationMetadata);
-  let runtimeInfo: RuntimeSelectorInfo;
+  Object.setPrototypeOf(memoizedFn, originalFn);
 
-  const selectFromAppState = (state: any) => {
-    const results = [];
+  const selectorMetaData = setupSelectorMetadata<T>(originalFn, creationMetadata);
 
-    runtimeInfo = runtimeInfo || getRuntimeSelectorInfo(selectorMetaData, selectors);
-    const { suppressErrors } = runtimeInfo.selectorOptions;
-    const { argumentSelectorFunctions } = runtimeInfo;
+  const makeRootSelector: SelectorFactory = (context: RuntimeSelectorContext) => {
+    const { argumentSelectorFunctions, selectorOptions } = getRuntimeSelectorInfo(
+      context,
+      selectorMetaData,
+      selectors
+    );
 
-    // Determine arguments from the app state using the selectors
-    results.push(...argumentSelectorFunctions.map(argFn => argFn(state)));
+    return function selectFromRoot(rootState: any) {
+      // Determine arguments from the app state using the selectors
+      const results = argumentSelectorFunctions.map(argFn => argFn(rootState));
 
-    // if the lambda tries to access a something on the
-    // state that doesn't exist, it will throw a TypeError.
-    // since this is quite usual behaviour, we simply return undefined if so.
-    try {
-      return memoizedFn(...results);
-    } catch (ex) {
-      if (ex instanceof TypeError && suppressErrors) {
-        return undefined;
+      // if the lambda tries to access a something on the
+      // state that doesn't exist, it will throw a TypeError.
+      // since this is quite usual behaviour, we simply return undefined if so.
+      try {
+        return memoizedFn(...results);
+      } catch (ex) {
+        if (ex instanceof TypeError && selectorOptions.suppressErrors) {
+          return undefined;
+        }
+
+        throw ex;
       }
-
-      throw ex;
-    }
+    };
   };
 
-  selectorMetaData.selectFromAppState = selectFromAppState;
+  selectorMetaData.makeRootSelector = makeRootSelector;
 
   return memoizedFn;
 }
 
 function setupSelectorMetadata<T extends (...args: any[]) => any>(
-  memoizedFn: T,
   originalFn: T,
   creationMetadata: CreationMetadata | undefined
 ) {
-  const selectorMetaData = ensureSelectorMetadata(memoizedFn);
+  const selectorMetaData = ensureSelectorMetadata(originalFn);
   selectorMetaData.originalFn = originalFn;
   let getExplicitSelectorOptions = () => ({});
   if (creationMetadata) {
@@ -102,46 +105,53 @@ function setupSelectorMetadata<T extends (...args: any[]) => any>(
   }
   const selectorMetaDataClone = { ...selectorMetaData };
   selectorMetaData.getSelectorOptions = () =>
-    getCustomSelectorOptions(selectorMetaDataClone, getExplicitSelectorOptions());
+    getLocalSelectorOptions(selectorMetaDataClone, getExplicitSelectorOptions());
   return selectorMetaData;
 }
 
 function getRuntimeSelectorInfo(
+  context: RuntimeSelectorContext,
   selectorMetaData: SelectorMetaDataModel,
   selectors: any[] | undefined = []
 ): RuntimeSelectorInfo {
-  const selectorOptions = selectorMetaData.getSelectorOptions();
-  const selectorsToApply = getSelectorsToApply(selectorMetaData, selectors);
-  const argumentSelectorFunctions = selectorsToApply.map(selector => getSelectorFn(selector));
+  const localSelectorOptions = selectorMetaData.getSelectorOptions();
+  const selectorOptions = context.getSelectorOptions(localSelectorOptions);
+  const selectorsToApply = getSelectorsToApply(
+    selectors,
+    selectorOptions,
+    selectorMetaData.containerClass
+  );
+
+  const argumentSelectorFunctions = selectorsToApply.map(selector => {
+    const factory = getRootSelectorFactory(selector);
+    return factory(context);
+  });
   return {
     selectorOptions,
     argumentSelectorFunctions
   };
 }
 
-function getCustomSelectorOptions(
+function getLocalSelectorOptions(
   selectorMetaData: SelectorMetaDataModel,
   explicitOptions: SharedSelectorOptions
 ): SharedSelectorOptions {
-  const selectorOptions: SharedSelectorOptions = {
-    ...globalSelectorOptions.get(),
+  return {
     ...(selectorOptionsMetaAccessor.getOptions(selectorMetaData.containerClass) || {}),
     ...(selectorOptionsMetaAccessor.getOptions(selectorMetaData.originalFn) || {}),
     ...(selectorMetaData.getSelectorOptions() || {}),
     ...explicitOptions
   };
-
-  return selectorOptions;
 }
 
 function getSelectorsToApply(
-  selectorMetaData: SelectorMetaDataModel,
-  selectors: any[] | undefined = []
+  selectors: any[] | undefined = [],
+  selectorOptions: SharedSelectorOptions,
+  containerClass: any
 ) {
   const selectorsToApply = [];
   const canInjectContainerState =
-    selectors.length === 0 || selectorMetaData.getSelectorOptions().injectContainerState;
-  const containerClass = selectorMetaData.containerClass;
+    selectors.length === 0 || selectorOptions.injectContainerState;
   if (containerClass && canInjectContainerState) {
     // If we are on a state class, add it as the first selector parameter
     const metadata = getStoreMetadata(containerClass);
@@ -156,10 +166,10 @@ function getSelectorsToApply(
 }
 
 /**
- * This function gets the selector function to be used to get the selected slice from the app state
+ * This function gets the factory function to create the selector to get the selected slice from the app state
  * @ignore
  */
-export function getSelectorFn(selector: any): SelectFromState {
+export function getRootSelectorFactory(selector: any): SelectorFactory {
   const metadata = getSelectorMetadata(selector) || getStoreMetadata(selector);
-  return (metadata && metadata.selectFromAppState) || selector;
+  return (metadata && metadata.makeRootSelector) || (() => selector);
 }

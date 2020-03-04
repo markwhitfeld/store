@@ -3,7 +3,8 @@ import { Observable } from 'rxjs';
 import { CONFIG_MESSAGES, VALIDATION_CODE } from '../../configs/messages.config';
 import { propGetter } from '../../internal/internals';
 import { SelectFactory } from './select-factory';
-import { META_KEY } from '../../symbols';
+import { StateToken } from '../../state-token/state-token';
+import { ExtractTokenType } from '../../state-token/symbols';
 
 const DOLLAR_CHAR_CODE = 36;
 
@@ -23,8 +24,6 @@ export function createSelectorFn(name: string, rawSelector?: any, paths: string[
       ? [rawSelector, ...paths]
       : rawSelector.split('.');
     return propGetter(propsArray, SelectFactory.config!);
-  } else if (rawSelector[META_KEY] && rawSelector[META_KEY].path) {
-    return propGetter(rawSelector[META_KEY].path.split('.'), SelectFactory.config!);
   }
 
   return rawSelector;
@@ -38,3 +37,21 @@ export function removeDollarAtTheEnd(name: string): string {
   const dollarAtTheEnd: boolean = name.charCodeAt(lastCharIndex) === DOLLAR_CHAR_CODE;
   return dollarAtTheEnd ? name.slice(0, lastCharIndex) : name;
 }
+
+export type PropertyType<T> = T extends StateToken<any>
+  ? Observable<ExtractTokenType<T>>
+  : T extends (...args: any[]) => any
+  ? Observable<ReturnType<T>>
+  : any;
+
+export type ComponentClass<T> = {
+  [P in keyof T]: T[P];
+};
+
+export type SelectType<T> = <
+  U extends ComponentClass<any> & Record<K, PropertyType<T>>,
+  K extends string
+>(
+  target: U,
+  key: K
+) => void;

@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/ivy",
+            "outputPath": "dist-integration",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -63,9 +63,15 @@
               "browserTarget": "ivy:build:production"
             }
           }
+        },
+        "test": {
+          "builder": "@angular-builders/jest:run"
         }
       }
     }
   },
-  "defaultProject": "ivy"
+  "defaultProject": "ivy",
+  "cli": {
+    "analytics": false
+  }
 }

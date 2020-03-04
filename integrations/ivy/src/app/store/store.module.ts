@@ -5,22 +5,19 @@ import { NgxsFormPluginModule } from '@ngxs/form-plugin';
 import { NgxsLoggerPluginModule } from '@ngxs/logger-plugin';
 import { NgxsStoragePluginModule } from '@ngxs/storage-plugin';
 import { NgxsWebsocketPluginModule } from '@ngxs/websocket-plugin';
+import { NgxsRouterPluginModule } from '@ngxs/router-plugin';
 
-import { AppState } from './app.state';
+import { CounterState } from './counter/counter.state';
 
 @NgModule({
   imports: [
-    NgxsModule.forRoot([AppState]),
+    NgxsModule.forRoot([CounterState]),
     NgxsReduxDevtoolsPluginModule.forRoot(),
     NgxsFormPluginModule.forRoot(),
     NgxsLoggerPluginModule.forRoot(),
     NgxsStoragePluginModule.forRoot(),
-    NgxsWebsocketPluginModule.forRoot()
-    // TODO(splincode): Ivy not working with NgxsRouterPluginModule
-    // Build successful, but runtime error:
-    // Can't resolve all parameters for RouterState: (?, ?, ?, ?, ?, ?, ?).
-    // NgxsRouterPluginModule.forRoot()
-  ],
-  exports: [NgxsModule]
+    NgxsWebsocketPluginModule.forRoot(),
+    NgxsRouterPluginModule.forRoot()
+  ]
 })
-export class StoreIvyModule {}
+export class StoreModule {}

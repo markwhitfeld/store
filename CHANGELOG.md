@@ -1,29 +1,74 @@
 # [DEV version](https://www.npmjs.com/package/@ngxs/store/v/dev)
 
-### To become [3.6.0](https://github.com/ngxs/store/milestone/9)
+### To become next version
 
 ```bash
 $ npm install @ngxs/store@dev
 ```
 
+- ...
+
+# 3.6.2 2020-02-07
+
+- Fix: Handle empty array dispatch edge case [#1521](https://github.com/ngxs/store/pull/1521)
+- Fix: Fix regression after upgrade to angular.rc-11 [#1526](https://github.com/ngxs/store/pull/1526)
+
+# 3.6.1 2020-01-15
+
+- Fix: Selectors should not be declaration order sensitive [#1514](https://github.com/ngxs/store/pull/1514)
+- Fix: Selectors should be deterministic based on store being used [#1508](https://github.com/ngxs/store/pull/1508)
+- Fix: Add support for using State Tokens in sub states [#1509](https://github.com/ngxs/store/pull/1509)
+- Fix: Optimize selector runtime binding [#1510](https://github.com/ngxs/store/pull/1510)
+- Build: Add router-plugin back to `Ivy` integration test [#1506](https://github.com/ngxs/store/pull/1506)
+- Build: Run ngcc synchronously to get `Ivy` build working again [#1497](https://github.com/ngxs/store/pull/1497)
+
+## NGXS-Labs
+
+### Data-plugin v2.0.0 2019-12-16
+
+- Feature: Support NGXS 3.6
+
+#### BREAKING CHANGES
+
+- Compatible only with NGXS 3.6+
+- Now `patchState, setState` return `void`
+- No longer support options in `NgxsDataPluginModule.forRoot()`
+- No longer support `@query` decorator
+
+# 3.6.0 2019-12-11
+
 - Feature: Add `ngxsOnChanges` lifecycle hook [#1389](https://github.com/ngxs/store/pull/1389)
-- Feature: Expose StateContextFactory, StateFactory [#1325](https://github.com/ngxs/store/pull/1325)
+- Feature: Expose `StateContextFactory`, `StateFactory` [#1325](https://github.com/ngxs/store/pull/1325)
 - Feature: Improved type safety for children states [#1388](https://github.com/ngxs/store/pull/1388)
+- Feature: Improved type safety for `@Select` decorator [#1453](https://github.com/ngxs/store/pull/1453)
+- Feature: Add `StateToken<T>` construct [#1436](https://github.com/ngxs/store/pull/1436)
+- Feature: Warn about undecorated state class if Ivy is enabled in dev (both JIT/AOT) [#1472](https://github.com/ngxs/store/pull/1472), [#1474](https://github.com/ngxs/store/pull/1474)
 - Feature: Storage Plugin - Use state classes as keys [#1380](https://github.com/ngxs/store/pull/1380)
 - Feature: Form Plugin - Implement `propertyPath` parameter in the `UpdateFormValue` [#1215](https://github.com/ngxs/store/pull/1215)
 - Feature: WebSocket Plugin - Implement `WebSocketConnected` action [#1371](https://github.com/ngxs/store/pull/1371)
+- Feature: HMR Plugin - Add `hmrIsReloaded` utility [#1435](https://github.com/ngxs/store/pull/1435)
+- Fix: Use generic `ModuleWithProviders` type for Ivy compatiblility [#1469](https://github.com/ngxs/store/pull/1469)
 - Fix: Explicit typings for state operators [#1395](https://github.com/ngxs/store/pull/1395), [#1405](https://github.com/ngxs/store/pull/1405)
 - Fix: Warn if the zone is not actual "NgZone" [#1270](https://github.com/ngxs/store/pull/1270)
 - Fix: Do not re-throw error to the global handler if custom is provided [#1379](https://github.com/ngxs/store/pull/1379)
 - Fix: Group `Actions` subscriptions to remove memory leak [#1381](https://github.com/ngxs/store/pull/1381)
 - Fix: Upgrade ng-packagr to fix Ivy issues [#1397](https://github.com/ngxs/store/pull/1397)
+- Fix: Router Plugin - resolve infinite redirects and browser hanging [#1430](https://github.com/ngxs/store/pull/1430)
+- Fix: Router Plugin - build compatibility with Angular 9 (Ivy) [#1459](https://github.com/ngxs/store/pull/1459)
+- Fix: Devtools Plugin - remove `NgxsModule` from imports to ensure Ivy compatibility [#1491](https://github.com/ngxs/store/pull/1491)
 - Build: Add build integration test with Angular 9 (Ivy) [#1278](https://github.com/ngxs/store/pull/1278)
 - Build: Run SSR tests with cypress [#1281](https://github.com/ngxs/store/pull/1281)
+- Build: Add E2E tests for the Ivy integration [#1492](https://github.com/ngxs/store/pull/1492)
+
+### BREAKING CHANGES
+
+- If you are using `TypeScript 2.7` and `Angular 5` you will need to update to `TypeScript 2.8.1` and `Angular 6.1.0` at a minimum. We were forced to drop support for these in order to provide support for Ivy. These versions are also no longer supported the Angular team either. This has not resulted in a major version change for NGXS due to the fact that it is not our API that has changed, rather a dependency.
 
 ## NGXS-Labs
 
 - Feature: announced [@ngxs-labs/data](https://github.com/ngxs-labs/data)
 - Feature: announced [@ngxs-labs/actions-executing](https://github.com/ngxs-labs/actions-executing)
+- Feature: announced [@ngxs-labs/attach-action](https://github.com/ngxs-labs/attach-action)
 
 # 3.5.1 2019-08-29
 

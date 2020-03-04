@@ -21,6 +21,7 @@
 - [Reactive Programming with Observables & NGXS](https://github.com/kctang/reactive-with-ngxs)
 - [Port of NgRx Example App](https://github.com/eranshmil/ngxs-example-app)
 - [State Management with NGXS](https://github.com/joaqcid/state-mgmt-with-ngxs)
+- [Fretboard Learning (Game/tool built using angular, Ionic and NGXS)](https://guitar-fretboard-learning.web.app/)
 
 ### Media
 
@@ -53,5 +54,6 @@
 - [coursetro - Angular NGXS Tutorial - An Alternative to Ngrx for State Management](https://coursetro.com/posts/code/152/Angular-NGXS-Tutorial---An-Alternative-to-Ngrx-for-State-Management)
 - [@splincode - NGXS Facade](https://medium.com/ngxs/ngxs-facade-3aa90c41497b)
 - [@alvino.aj - NGXS — Thoughts, Patterns, Architecture and best practices](https://medium.com/@alvino.aj/ngxs-thoughts-patterns-architecture-and-best-practices-c991c42618d9)
+- [Angular Chile - Manejo de Estado con NGXS en Angular (Spanish)](https://medium.com/angular-chile/manejo-de-estado-con-ngxs-en-angular-e66e11198a0)
 
 If you have content you'd like to share with the community, make a PR to add it here.
