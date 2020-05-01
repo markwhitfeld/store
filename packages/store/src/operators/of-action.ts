@@ -3,6 +3,7 @@ import { map, filter } from 'rxjs/operators';
 import { getActionTypeFromInstance } from '../utils/utils';
 import { ActionContext, ActionStatus } from '../actions-stream';
 import { CONFIG_MESSAGES, VALIDATION_CODE } from '../configs/messages.config';
+import { ActionType, ActionDef } from '../actions/symbols';
 
 export interface ActionCompletion<T = any, E = Error> {
   action: T;
@@ -13,15 +14,18 @@ export interface ActionCompletion<T = any, E = Error> {
   };
 }
 
-export function ofAction<T>(allowedType: any): OperatorFunction<ActionContext, T>;
-export function ofAction<T>(...allowedTypes: any[]): OperatorFunction<ActionContext, T>;
+export function ofAction<T extends ActionType>(
+  allowedType: T
+): OperatorFunction<ActionContext, T>;
 
 /**
  * RxJS operator for selecting out specific actions.
  *
  * This will grab actions that have just been dispatched as well as actions that have completed
  */
-export function ofAction(...allowedTypes: any[]) {
+export function ofAction<T extends ActionType>(
+  ...allowedTypes: any[]
+): OperatorFunction<ActionContext, T> {
   return ofActionOperator(allowedTypes);
 }
 
@@ -30,8 +34,10 @@ export function ofAction(...allowedTypes: any[]) {
  *
  * This will ONLY grab actions that have just been dispatched
  */
-export function ofActionDispatched(...allowedTypes: any[]) {
-  return ofActionOperator(allowedTypes, [ActionStatus.Dispatched]);
+//export function ofActionDispatched<T>(allowedTypes: ActionDef<any, T>) {
+export function ofActionDispatched<T, U extends ActionDef<any, T>[]>(...allowedTypes: U) {
+  // return ofActionOperator<T>(allowedTypes, [ActionStatus.Dispatched]);
+  return ofActionOperator<InstanceType<U[number]>>(allowedTypes, [ActionStatus.Dispatched]);
 }
 
 /**
